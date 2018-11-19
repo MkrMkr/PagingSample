@@ -31,7 +31,6 @@
 package com.raywenderlich.android.redditclone
 
 import android.arch.lifecycle.Observer
-import android.arch.paging.DataSource
 import android.arch.paging.LivePagedListBuilder
 import android.arch.paging.PagedList
 import android.os.Bundle
@@ -43,38 +42,36 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-  private val adapter = RedditAdapter()
+    private val adapter = RedditAdapter()
 
-  override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-    setContentView(R.layout.activity_main)
-    initializeList()
-  }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        initializeList()
+    }
 
-  private fun initializeList() {
-    list.layoutManager = LinearLayoutManager(this)
-    list.adapter = adapter
-    //1
-    val config
-            = PagedList.Config.Builder()
-            .setPageSize(300)
-            .setInitialLoadSizeHint(5)
-            .setEnablePlaceholders(false)
-            //.setPrefetchDistance(10000)
-            .build()
+    private fun initializeList() {
+        list.layoutManager = LinearLayoutManager(this)
+        list.adapter = adapter
+        //1
+        val config = PagedList.Config.Builder()
+                .setPageSize(20)
+                .setInitialLoadSizeHint(20)
+                .setEnablePlaceholders(false)
+                .setPrefetchDistance(10)
+                .build()
 
-    //2
-    val liveData
-            = initializedPagedListBuilder(config).build()
+        //2
+        val liveData = initializedPagedListBuilder(config).build()
 
-    //3
-    liveData.observe(this, Observer<PagedList<RedditPost>> { pagedList ->
-      adapter.submitList(pagedList)
-    })
-  }
+        //3
+        liveData.observe(this, Observer<PagedList<RedditPost>> { pagedList ->
+            adapter.submitList(pagedList)
+        })
+    }
 
-  private fun initializedPagedListBuilder(config: PagedList.Config):
-          LivePagedListBuilder<Int, RedditPost> {
+    private fun initializedPagedListBuilder(config: PagedList.Config):
+            LivePagedListBuilder<Int, RedditPost> {
 
 
 //    val dataSourceFactory
@@ -84,9 +81,11 @@ class MainActivity : AppCompatActivity() {
 //      }
 //    }
 //    return LivePagedListBuilder<String, RedditPost>(dataSourceFactory, config)
-    val database = RedditDb.create(this)
-    return LivePagedListBuilder<Int, RedditPost>(
-            database.postDao().posts(),
-            config)
-  }
+
+        val database = RedditDb.create(this)
+        return LivePagedListBuilder<Int, RedditPost>(database.postDao().posts(), config)
+                .apply {
+                    setBoundaryCallback(RedditBoundaryCallback(database))
+                };
+    }
 }

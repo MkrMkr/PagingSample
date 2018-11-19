@@ -32,24 +32,77 @@
 package com.raywenderlich.android.redditclone
 
 import android.arch.paging.PagedList
+import android.util.Log
 import com.raywenderlich.android.redditclone.database.RedditDb
+import com.raywenderlich.android.redditclone.networking.RedditApiResponse
 import com.raywenderlich.android.redditclone.networking.RedditPost
 import com.raywenderlich.android.redditclone.networking.RedditService
 import com.raywenderlich.android.redditclone.utils.PagingRequestHelper
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.util.concurrent.Executors
 
 class RedditBoundaryCallback(private val db: RedditDb) :
-    PagedList.BoundaryCallback<RedditPost>() {
+        PagedList.BoundaryCallback<RedditPost>() {
 
-  private val api = RedditService.createService()
-  private val executor = Executors.newSingleThreadExecutor()
-  private val helper = PagingRequestHelper(executor)
+    private val api = RedditService.createService()
+    private val executor = Executors.newSingleThreadExecutor()
+    private val helper = PagingRequestHelper(executor)
 
-  override fun onZeroItemsLoaded() {
-    super.onZeroItemsLoaded()
-  }
+    override fun onZeroItemsLoaded() {
+        super.onZeroItemsLoaded()
+        //1
+        helper.runIfNotRunning(PagingRequestHelper.RequestType.INITIAL) { helperCallback ->
+            api.getPosts()
+                    //2
+                    .enqueue(object : Callback<RedditApiResponse> {
 
-  override fun onItemAtEndLoaded(itemAtEnd: RedditPost) {
-    super.onItemAtEndLoaded(itemAtEnd)
-  }
+                        override fun onFailure(call: Call<RedditApiResponse>?, t: Throwable) {
+                            //3
+                            Log.e("RedditBoundaryCallback", "Failed to load data!")
+                            helperCallback.recordFailure(t) //Letting the helper know will make
+                            // future attempts able to run since the helper will not be waiting for you to finish the call.
+                        }
+
+                        override fun onResponse(
+                                call: Call<RedditApiResponse>?,
+                                response: Response<RedditApiResponse>) {
+                            //4
+                            val posts = response.body()?.data?.children?.map { it.data }
+                            executor.execute {
+                                db.postDao().insert(posts ?: listOf())
+                                helperCallback.recordSuccess()
+                            }
+                        }
+                    })
+        }
+    }
+
+    override fun onItemAtEndLoaded(itemAtEnd: RedditPost) {
+        super.onItemAtEndLoaded(itemAtEnd)
+        Log.i("RedditBoundaryCallback", "onItemAtEndLoaded")
+        helper.runIfNotRunning(PagingRequestHelper.RequestType.AFTER) { helperCallback ->
+            api.getPosts(after = itemAtEnd.key)
+                    .enqueue(object : Callback<RedditApiResponse> {
+
+                        override fun onFailure(call: Call<RedditApiResponse>?, t: Throwable) {
+                            Log.e("RedditBoundaryCallback", "Failed to load data!")
+                            helperCallback.recordFailure(t)
+                        }
+
+                        override fun onResponse(
+                                call: Call<RedditApiResponse>?,
+                                response: Response<RedditApiResponse>) {
+
+                            val posts = response.body()?.data?.children?.map { it.data }
+                            executor.execute {
+                                db.postDao().insert(posts ?: listOf())
+                                Log.i("RedditBoundaryCallback", "RedditBoundaryCallback->onItemAtEndLoaded(...)->getPosts(itemAtEnd.key=" + itemAtEnd.key + ") " + " new posts count: " + posts?.count())
+                                helperCallback.recordSuccess()
+                            }
+                        }
+                    })
+        }
+    }
 }
