@@ -2,19 +2,15 @@ package com.raywenderlich.android.redditclone.ui
 
 
 import android.arch.lifecycle.Observer
-import android.arch.paging.DataSource
-import android.arch.paging.LivePagedListBuilder
-import android.arch.paging.PagedList
+import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.raywenderlich.android.redditclone.R
 import com.raywenderlich.android.redditclone.RedditAdapter
-import com.raywenderlich.android.redditclone.RedditDataSource
-import com.raywenderlich.android.redditclone.networking.RedditPost
+import com.raywenderlich.android.redditclone.viewmodel.RedditListViewModel
 import kotlinx.android.synthetic.main.fragment_main.*
 
 // TODO: Rename parameter arguments, choose names that match
@@ -33,21 +29,15 @@ class MainFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         redditAdapter = RedditAdapter()
-        val config = PagedList.Config.Builder()
-                .setPageSize(20)
-                .setInitialLoadSizeHint(20)
-                .setEnablePlaceholders(false)
-                .setPrefetchDistance(10)
-                .build()
 
         //2
-        val liveData = initializedPagedListBuilder(config).build()
+        //val liveData = initializedPagedListBuilder(config).build()
 
         //3
-        liveData.observe(this, Observer<PagedList<RedditPost>> { pagedList ->
-            Log.i("testTest","redditAdapter->submitList "+pagedList)
-            redditAdapter.submitList(pagedList)
-        })
+//        liveData.observe(this, Observer<PagedList<RedditPost>> { pagedList ->
+//            Log.i("testTest","redditAdapter->submitList "+pagedList)
+//            redditAdapter.submitList(pagedList)
+//        })
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -62,28 +52,13 @@ class MainFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        //ViewModelProviders.of(this)
-    }
-
-
-    private fun initializedPagedListBuilder(config: PagedList.Config):
-            LivePagedListBuilder<String, RedditPost> {
-
-
-        val dataSourceFactory = object : DataSource.Factory<String, RedditPost>() {
-            override fun create(): DataSource<String, RedditPost> {
-                return RedditDataSource()
+        var redditListViewModel = ViewModelProviders.of(this).get(RedditListViewModel::class.java)
+        redditListViewModel.getRedditPostsPagedList().observe(this, Observer { redditPosts ->
+            if (redditPosts != null) {
+                redditAdapter.submitList(redditPosts)
             }
-        }
-        return LivePagedListBuilder<String, RedditPost>(dataSourceFactory, config)
-
-//        val database = RedditDb.create(this)
-//        return LivePagedListBuilder<Int, RedditPost>(database.postDao().posts(), config)
-//                .apply {
-//                    setBoundaryCallback(RedditBoundaryCallback(database))
-//                };
+        })
     }
-
 
 
     companion object {
