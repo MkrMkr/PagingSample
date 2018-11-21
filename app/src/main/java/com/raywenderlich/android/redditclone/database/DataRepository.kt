@@ -1,25 +1,20 @@
 package com.raywenderlich.android.redditclone.database
 
-import android.arch.paging.DataSource
-import com.raywenderlich.android.redditclone.RedditDataSource
-import com.raywenderlich.android.redditclone.networking.RedditPost
+import com.raywenderlich.android.redditclone.RedditBoundaryCallback
 
-class DataRepository() {
+class DataRepository(redditDb: RedditDb) {
 
-    val redditPostsFactory = object : DataSource.Factory<String, RedditPost>() {
-        override fun create(): DataSource<String, RedditPost> {
-            return RedditDataSource()
-        }
-    }
+    val redditPostsFromDbFactory = redditDb.postDao().posts() //Room is able to return DataSource.Factory for us
+    val boundaryCallback = RedditBoundaryCallback(redditDb)
 
     companion object {
         private var instance: DataRepository? = null
 
-        fun getInstance(): DataRepository {
+        fun getInstance(redditDb: RedditDb): DataRepository {
             if (instance == null) {
                 synchronized(DataRepository::class.java) {
                     if (instance == null) {
-                        instance = DataRepository()
+                        instance = DataRepository(redditDb)
                     }
                 }
             }
