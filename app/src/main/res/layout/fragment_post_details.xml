@@ -3,14 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".ui.PostsListFragment">
+    tools:context=".ui.PostDetailsFragment">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/redditList"
+    <!-- TODO: Update blank fragment layout -->
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layoutManager="android.support.v7.widget.LinearLayoutManager"
-        android:scrollbars="vertical" />
+        android:text="@string/hello_blank_fragment" />
 
 </FrameLayout>

@@ -40,9 +40,17 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         if (savedInstanceState == null) {
-            val fragment = MainFragment()
+            val fragment = PostsListFragment()
             supportFragmentManager.beginTransaction()
-                    .add(R.id.fragmentContainer, fragment, MainFragment.TAG).commit()
+                    .add(R.id.fragmentContainer, fragment, PostsListFragment.TAG).commit()
         }
+    }
+
+    fun show(key: String) {
+        supportFragmentManager
+                .beginTransaction()
+                .addToBackStack("product")
+                .replace(R.id.fragmentContainer,
+                        PostDetailsFragment(), null).commit()
     }
 }

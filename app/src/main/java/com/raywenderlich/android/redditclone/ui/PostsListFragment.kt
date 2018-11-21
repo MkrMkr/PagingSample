@@ -1,6 +1,7 @@
 package com.raywenderlich.android.redditclone.ui
 
 
+import android.arch.lifecycle.Lifecycle
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
@@ -13,13 +14,14 @@ import com.raywenderlich.android.redditclone.RedditAdapter
 import com.raywenderlich.android.redditclone.viewmodel.RedditListViewModel
 import kotlinx.android.synthetic.main.fragment_main.*
 
-class MainFragment : Fragment() {
+class PostsListFragment : Fragment() {
 
-    private lateinit var redditAdapter: RedditAdapter
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        redditAdapter = RedditAdapter()
+    private val redditAdapter: RedditAdapter = RedditAdapter { selectedItem ->
+        if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+            selectedItem?.let {
+                (activity as MainActivity).show(it)
+            }
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
