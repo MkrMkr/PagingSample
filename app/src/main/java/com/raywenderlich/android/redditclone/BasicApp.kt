@@ -6,10 +6,6 @@ import com.raywenderlich.android.redditclone.database.RedditDb
 
 class BasicApp : Application() {
 
-    override fun onCreate() {
-        super.onCreate()
-    }
-
     fun getRepository(): DataRepository {
         return DataRepository.getInstance(RedditDb.create(this))
     }

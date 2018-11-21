@@ -72,6 +72,7 @@ class RedditBoundaryCallback(private val db: RedditDb) :
                             val posts = response.body()?.data?.children?.map { it.data }
                             executor.execute {
                                 db.postDao().insert(posts ?: listOf())
+                                Log.i("RedditBoundaryCallback", "RedditBoundaryCallback->onZeroItemsLoaded()->getPosts")
                                 helperCallback.recordSuccess()
                             }
                         }
