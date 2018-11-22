@@ -74,19 +74,19 @@ class MainActivity : AppCompatActivity() {
   }
 
   private fun initializedPagedListBuilder(config: PagedList.Config):
-          LivePagedListBuilder<Int, RedditPost> {
+          LivePagedListBuilder<String, RedditPost> {
 
 
-//    val dataSourceFactory
-//            = object : DataSource.Factory<String, RedditPost>() {
-//      override fun create(): DataSource<String, RedditPost> {
-//        return RedditDataSource()
-//      }
-//    }
-//    return LivePagedListBuilder<String, RedditPost>(dataSourceFactory, config)
-    val database = RedditDb.create(this)
-    return LivePagedListBuilder<Int, RedditPost>(
-            database.postDao().posts(),
-            config)
+    val dataSourceFactory
+            = object : DataSource.Factory<String, RedditPost>() {
+      override fun create(): DataSource<String, RedditPost> {
+        return RedditDataSource()
+      }
+    }
+    return LivePagedListBuilder<String, RedditPost>(dataSourceFactory, config)
+//    val database = RedditDb.create(this)
+//    return LivePagedListBuilder<Int, RedditPost>(
+//            database.postDao().posts(),
+//            config)
   }
 }
